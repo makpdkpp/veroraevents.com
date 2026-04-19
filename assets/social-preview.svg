@@ -1,0 +1,18 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#FFF8F4"/>
+  <circle cx="215" cy="142" r="150" fill="#F7D7DE" fill-opacity="0.75"/>
+  <circle cx="1030" cy="112" r="128" fill="#EDDABC" fill-opacity="0.7"/>
+  <circle cx="1034" cy="512" r="154" fill="#F4D0D9" fill-opacity="0.62"/>
+  <rect x="76" y="82" width="1048" height="466" rx="42" fill="#FFFDFC" stroke="white" stroke-opacity="0.82"/>
+  <circle cx="854" cy="242" r="76" fill="#F5CFD8"/>
+  <circle cx="952" cy="222" r="62" fill="#EDD7B4"/>
+  <circle cx="908" cy="330" r="88" fill="#E2A7B8"/>
+  <path d="M855 308C864 344 867 384 866 432" stroke="#A67782" stroke-width="8" stroke-linecap="round"/>
+  <path d="M952 286C947 322 943 370 943 432" stroke="#A67782" stroke-width="8" stroke-linecap="round"/>
+  <path d="M908 415C908 370 905 329 912 286" stroke="#A67782" stroke-width="8" stroke-linecap="round"/>
+  <path d="M866 434C881 455 895 470 908 484C921 470 937 455 943 434" stroke="#C79C63" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="140" y="220" fill="#3A2930" font-family="Cormorant Garamond, serif" font-size="84" font-weight="600">Verora Balloon Shop</text>
+  <text x="145" y="278" fill="#C79C63" font-family="Manrope, sans-serif" font-size="24" font-weight="700" letter-spacing="2">รับจัดลูกโป่งและตกแต่งงานอีเวนต์</text>
+  <text x="145" y="360" fill="#725861" font-family="Manrope, sans-serif" font-size="32">ซุ้มลูกโป่ง ช่อลูกโป่งฮีเลียม แบ็กดรอป และติดตั้งหน้างาน</text>
+  <text x="145" y="418" fill="#725861" font-family="Manrope, sans-serif" font-size="32">สำหรับวันเกิด งานแต่ง งานเปิดร้าน และงานเปิดตัวแบรนด์</text>
+</svg>

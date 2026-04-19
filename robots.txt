@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://veroraevents.com/sitemap.xml
