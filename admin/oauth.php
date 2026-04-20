@@ -72,7 +72,7 @@ function httpPost(string $url, array $params): array
     return json_decode($res ?: '{}', true) ?: [];
 }
 
-function sendResult(string $type, $payload): never
+function sendResult(string $type, $payload): void
 {
     $json    = json_encode($payload, JSON_UNESCAPED_UNICODE);
     $message = "authorization:github:{$type}:{$json}";
@@ -99,7 +99,7 @@ function sendResult(string $type, $payload): never
     exit;
 }
 
-function errorPage(string $msg): never
+function errorPage(string $msg): void
 {
     http_response_code(500);
     echo '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>'
