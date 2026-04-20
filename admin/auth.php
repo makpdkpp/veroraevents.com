@@ -67,6 +67,7 @@ function adminNav(string $page = ''): void { ?>
   <div style="display:flex;gap:.5rem;align-items:center">
     <a href="/admin/dashboard.php" class="btn btn-ghost btn-sm" <?= $page === 'posts' ? 'aria-current="page"' : '' ?>>บทความ</a>
     <a href="/admin/gallery.php" class="btn btn-ghost btn-sm" <?= $page === 'gallery' ? 'aria-current="page"' : '' ?>>ผลงาน</a>
+    <a href="/admin/settings.php" class="btn btn-ghost btn-sm" <?= $page === 'settings' ? 'aria-current="page"' : '' ?>>ตั้งค่า</a>
     <a href="/admin/edit.php" class="btn btn-primary btn-sm">+ บทความใหม่</a>
     <a href="/admin/logout.php" class="btn btn-ghost btn-sm">ออกจากระบบ</a>
   </div>
