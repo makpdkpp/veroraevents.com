@@ -25,7 +25,7 @@ adminHead('Dashboard');
 ?>
 <div class="wrap">
   <div class="card">
-    <?php adminNav() ?>
+    <?php adminNav('posts') ?>
 
     <div class="topbar">
       <h1>บทความทั้งหมด (<?= count($posts) ?>)</h1>
