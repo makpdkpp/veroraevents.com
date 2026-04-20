@@ -1,1 +1,11 @@
 AddType text/yaml .yml .yaml
+
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^blog/([^/]+)/?$ /blog/post.php?slug=$1 [L,QSA]
+
+# Protect source files from direct access
+RewriteRule ^_posts/ - [F,L]
+RewriteRule ^_templates/ - [F,L]
+RewriteRule ^admin/config\.php$ - [F,L]

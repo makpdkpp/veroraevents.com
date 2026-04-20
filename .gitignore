@@ -31,5 +31,6 @@ temp/
 *.tmp
 *.swp
 
-# CMS OAuth credentials — upload to server manually, never commit
+# Admin credentials — upload to server manually, never commit
+admin/config.php
 admin/oauth-config.php
