@@ -1,24 +1,12 @@
 <?php
 /**
  * GitHub OAuth proxy for Decap CMS
- *
- * Setup:
- *   1. Create a GitHub OAuth App at:
- *      https://github.com/settings/developers → OAuth Apps → New OAuth App
- *      Homepage URL:            https://veroraevents.com
- *      Authorization callback:  https://veroraevents.com/admin/oauth.php
- *
- *   2. Copy oauth-config.php.example → oauth-config.php on the SERVER (not in Git).
- *      Fill in GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET.
+ * Setup: copy oauth-config.php.example → oauth-config.php and fill in credentials
  */
-
-session_start();
 
 $config = __DIR__ . '/oauth-config.php';
 if (!file_exists($config)) {
-    http_response_code(500);
-    echo '<p>ไม่พบไฟล์ <code>admin/oauth-config.php</code> — กรุณาสร้างไฟล์บน server ตาม oauth-config.php.example</p>';
-    exit;
+    errorPage('ไม่พบไฟล์ <code>admin/oauth-config.php</code> — กรุณาสร้างไฟล์บน server ตาม oauth-config.php.example');
 }
 require $config;
 
@@ -31,32 +19,29 @@ if ($error) {
 
 // Step 1 — redirect to GitHub
 if (!$code) {
-    $state = bin2hex(random_bytes(16));
-    $_SESSION['oauth_state'] = $state;
+    $redirectUri = (isset($_SERVER['HTTPS']) ? 'https' : 'http')
+                 . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'];
 
     $url = 'https://github.com/login/oauth/authorize?' . http_build_query([
         'client_id'    => GITHUB_CLIENT_ID,
         'scope'        => 'repo,user',
-        'state'        => $state,
-        'redirect_uri' => (isset($_SERVER['HTTPS']) ? 'https' : 'http')
-                          . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'],
+        'redirect_uri' => $redirectUri,
     ]);
     header('Location: ' . $url);
     exit;
 }
 
-// Step 2 — exchange code → token
+// Step 2 — exchange code → access token
 $data = httpPost('https://github.com/login/oauth/access_token', [
     'client_id'     => GITHUB_CLIENT_ID,
     'client_secret' => GITHUB_CLIENT_SECRET,
     'code'          => $code,
-    'state'         => $_SESSION['oauth_state'] ?? '',
 ]);
 
 if (!empty($data['access_token'])) {
     sendResult('success', ['token' => $data['access_token'], 'provider' => 'github']);
 } else {
-    sendResult('error', $data['error_description'] ?? 'OAuth failed');
+    sendResult('error', $data['error_description'] ?? 'Token exchange failed');
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -71,6 +56,7 @@ function httpPost(string $url, array $params): array
             CURLOPT_POSTFIELDS     => $body,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER     => ['Accept: application/json', 'Content-Type: application/x-www-form-urlencoded'],
+            CURLOPT_TIMEOUT        => 15,
         ]);
         $res = curl_exec($ch);
         curl_close($ch);
@@ -79,6 +65,7 @@ function httpPost(string $url, array $params): array
             'method'  => 'POST',
             'header'  => "Accept: application/json\r\nContent-Type: application/x-www-form-urlencoded\r\n",
             'content' => $body,
+            'timeout' => 15,
         ]]);
         $res = @file_get_contents($url, false, $ctx);
     }
@@ -105,9 +92,18 @@ function sendResult(string $type, $payload): never
     window.opener && window.opener.postMessage('authorizing:github', '*');
 })();
 </script>
-<p style="font-family:sans-serif;padding:2rem">กำลังยืนยันตัวตน หน้าต่างนี้จะปิดโดยอัตโนมัติ…</p>
+<p style="font-family:sans-serif;padding:2rem">กำลังยืนยันตัวตน…</p>
 </body>
 </html>
     <?php
+    exit;
+}
+
+function errorPage(string $msg): never
+{
+    http_response_code(500);
+    echo '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>'
+       . '<p style="font-family:sans-serif;padding:2rem;color:#c00">' . $msg . '</p>'
+       . '</body></html>';
     exit;
 }
