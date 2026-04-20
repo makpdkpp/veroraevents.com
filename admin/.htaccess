@@ -1,0 +1,36 @@
+RewriteEngine On
+
+# Ignore hash fragment URLs that some browser extensions request
+# These cause 404s but aren't real resources
+RewriteCond %{THE_REQUEST} \#/
+RewriteRule .* - [R=404,L]
+
+# Suppress error logging for extension-related 404s
+<IfModule mod_rewrite.c>
+    # Return clean 404 for invalid requests without logging
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule \.(map|json|js)$ - [L,R=404]
+</IfModule>
+
+# Protect sensitive files
+<FilesMatch "\.(php|php\.)$">
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Allow from all
+    </IfModule>
+</FilesMatch>
+
+# Deny access to config files
+<FilesMatch "^config\.php$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
