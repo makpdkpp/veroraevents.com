@@ -28,7 +28,7 @@ html {
 body {
     margin: 0;
     min-height: 100vh;
-    font-family: "Manrope", "Sarabun", sans-serif;
+    font-family: "Manrope", "Kanit", sans-serif;
     color: var(--text);
     -webkit-font-smoothing: antialiased;
     overflow-wrap: break-word;
@@ -290,14 +290,14 @@ img {
     letter-spacing: 0.2em;
     font-size: 0.72rem;
     font-weight: 700;
-    font-family: "Manrope", "Sarabun", sans-serif;
+    font-family: "Manrope", "Kanit", sans-serif;
 }
 
 h1,
 h2,
 h3 {
     margin: 0;
-    font-family: "Cormorant Garamond", "Sarabun", serif;
+    font-family: "Cormorant Garamond", "Kanit", serif;
     font-weight: 600;
     line-height: 1.22;
 }
