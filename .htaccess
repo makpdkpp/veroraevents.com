@@ -1,4 +1,7 @@
 RewriteEngine On
+
+# Force blog listing to use PHP (dynamic from _posts)
+RewriteRule ^blog/?$ /blog/index.php [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^blog/([^/]+)/?$ /blog/post.php?slug=$1 [L,QSA]
