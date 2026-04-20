@@ -1,16 +1,19 @@
-name: Build · Deploy · Social Post
+name: Build · Social Post
 
 on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - name: Checkout (with history for diff)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
@@ -27,25 +30,13 @@ jobs:
       - name: Build article pages
         run: node build.mjs
 
-      - name: Deploy to shared host via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server:     ${{ secrets.FTP_HOST }}
-          username:   ${{ secrets.FTP_USER }}
-          password:   ${{ secrets.FTP_PASS }}
-          server-dir: ${{ secrets.FTP_PATH }}
-          exclude: |
-            **/.git*
-            **/.git*/**
-            _posts/**
-            _templates/**
-            build.mjs
-            social-post.mjs
-            package.json
-            package-lock.json
-            node_modules/**
-            CLAUDE.md
-            admin/oauth-config.php.example
+      - name: Commit built pages back to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add blog/
+          git diff --staged --quiet || git commit -m "build: regenerate blog pages [skip ci]"
+          git push
 
       - name: Detect new article
         id: detect
