@@ -1,0 +1,66 @@
+name: Build · Deploy · Social Post
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with history for diff)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build article pages
+        run: node build.mjs
+
+      - name: Deploy to shared host via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server:     ${{ secrets.FTP_HOST }}
+          username:   ${{ secrets.FTP_USER }}
+          password:   ${{ secrets.FTP_PASS }}
+          server-dir: ${{ secrets.FTP_PATH }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            _posts/**
+            _templates/**
+            build.mjs
+            social-post.mjs
+            package.json
+            package-lock.json
+            node_modules/**
+            CLAUDE.md
+            admin/oauth-config.php.example
+
+      - name: Detect new article
+        id: detect
+        run: |
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            NEW=$(git diff HEAD~1 HEAD --name-only --diff-filter=A -- '_posts/*.md' | head -1)
+          else
+            NEW=$(git ls-files '_posts/*.md' | head -1)
+          fi
+          echo "file=$NEW" >> $GITHUB_OUTPUT
+          [ -n "$NEW" ] && echo "found=true" >> $GITHUB_OUTPUT || echo "found=false" >> $GITHUB_OUTPUT
+
+      - name: Post to Facebook & Instagram
+        if: steps.detect.outputs.found == 'true'
+        env:
+          FB_PAGE_ID:           ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+          IG_USER_ID:           ${{ secrets.IG_USER_ID }}
+          SITE_URL:             https://veroraevents.com
+        run: node social-post.mjs "${{ steps.detect.outputs.file }}"

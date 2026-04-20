@@ -1,0 +1,14 @@
+<?php
+/**
+ * GitHub OAuth App credentials
+ *
+ * 1. ไปที่ https://github.com/settings/developers → OAuth Apps → New OAuth App
+ *    - Homepage URL:           https://veroraevents.com
+ *    - Authorization callback: https://veroraevents.com/admin/oauth.php
+ *
+ * 2. Copy ไฟล์นี้ → oauth-config.php แล้วใส่ค่าจริงด้านล่าง
+ *    อัปโหลดไปบน server เท่านั้น ห้าม commit ขึ้น Git
+ */
+
+define('GITHUB_CLIENT_ID',     'YOUR_CLIENT_ID_HERE');
+define('GITHUB_CLIENT_SECRET', 'YOUR_CLIENT_SECRET_HERE');

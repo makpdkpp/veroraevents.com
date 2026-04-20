@@ -1,0 +1,57 @@
+backend:
+  name: github
+  repo: makpdkpp/veroraevents.com
+  branch: main
+  base_url: https://veroraevents.com
+  auth_endpoint: admin/oauth.php
+
+media_folder: assets/blog
+public_folder: /assets/blog
+
+collections:
+  - name: posts
+    label: บทความ
+    label_singular: บทความ
+    folder: _posts
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{fields.slug}}"
+    preview_path: "blog/{{fields.slug}}"
+    fields:
+      - label: หัวข้อบทความ
+        name: title
+        widget: string
+        hint: "ชื่อที่แสดงบนเว็บ, Google, และโซเชียล"
+
+      - label: "Slug (URL)"
+        name: slug
+        widget: string
+        hint: "ตัวอักษรภาษาอังกฤษและ - เท่านั้น เช่น balloon-arch-guide"
+        pattern: ['^[a-z0-9]+(?:-[a-z0-9]+)*$', 'ใช้ตัวพิมพ์เล็ก a-z, 0-9 และ - เท่านั้น']
+
+      - label: วันที่เผยแพร่
+        name: date
+        widget: datetime
+        format: "YYYY-MM-DD"
+
+      - label: คำอธิบาย (SEO & Caption โซเชียล)
+        name: description
+        widget: text
+        hint: "แสดงบน Google และใช้เป็น caption อัตโนมัติใน Facebook/Instagram"
+
+      - label: รูปภาพหลัก
+        name: image
+        widget: image
+        required: false
+        hint: "จำเป็นสำหรับการโพสต์ Instagram — ใช้รูป 1:1 หรือ 4:5"
+
+      - label: เนื้อหาบทความ
+        name: body
+        widget: markdown
+
+      - label: โพสต์ไปโซเชียลอัตโนมัติ
+        name: social
+        widget: object
+        collapsed: false
+        fields:
+          - { label: "โพสต์ไป Facebook", name: facebook,  widget: boolean, default: true }
+          - { label: "โพสต์ไป Instagram", name: instagram, widget: boolean, default: true }
