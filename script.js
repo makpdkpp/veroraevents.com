@@ -1,3 +1,22 @@
+fetch('/_data/content.json', { cache: 'no-store' })
+    .then((res) => (res.ok ? res.json() : null))
+    .then((content) => {
+        if (!content || typeof content !== 'object') return;
+        document.querySelectorAll('[data-content]').forEach((el) => {
+            const key = el.getAttribute('data-content');
+            if (key && typeof content[key] === 'string' && content[key].trim() !== '') {
+                el.textContent = content[key];
+            }
+        });
+        document.querySelectorAll('[data-content-src]').forEach((el) => {
+            const key = el.getAttribute('data-content-src');
+            if (key && typeof content[key] === 'string' && content[key].trim() !== '') {
+                el.setAttribute('src', content[key]);
+            }
+        });
+    })
+    .catch(() => {});
+
 const navToggle = document.querySelector('.nav-toggle');
 const navMenu = document.querySelector('.nav-menu');
 const inquiryForm = document.querySelector('#inquiry-form');
