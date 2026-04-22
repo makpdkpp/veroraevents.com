@@ -1,5 +1,6 @@
 <?php
 require __DIR__ . '/auth.php';
+require __DIR__ . '/social.php';
 requireLogin();
 
 $postsDir = dirname(__DIR__) . '/_posts';
@@ -37,13 +38,14 @@ $fm .= "---\n\n$body\n";
 $newFile = $date . '-' . $slug . '.md';
 $newPath = $postsDir . '/' . $newFile;
 
-// Delete old file if slug/date changed
 if ($origFile && $origFile !== $newFile) {
     $oldPath = $postsDir . '/' . $origFile;
     if (file_exists($oldPath)) unlink($oldPath);
 }
 
 file_put_contents($newPath, $fm);
+
+$socialFlash = '';
 
 // Social posting — only on new publish
 if ($isNew) {
@@ -54,53 +56,23 @@ if ($isNew) {
         $articleUrl = rtrim($siteUrl, '/') . '/blog/' . $slug . '/';
         $caption    = $title . "\n\n" . $description . "\n\nอ่านต่อได้ที่ → " . $articleUrl;
 
-        if ($postFB && defined('FB_PAGE_ID') && FB_PAGE_ID) {
-            if ($imageFB) {
-                socialPost("https://graph.facebook.com/v19.0/" . FB_PAGE_ID . "/photos", [
-                    'url'          => $imageFB,
-                    'caption'      => $caption,
-                    'access_token' => FB_PAGE_ACCESS_TOKEN,
-                ]);
-            } else {
-                socialPost("https://graph.facebook.com/v19.0/" . FB_PAGE_ID . "/feed", [
-                    'message'      => $caption,
-                    'link'         => $articleUrl,
-                    'access_token' => FB_PAGE_ACCESS_TOKEN,
-                ]);
-            }
+        $fbOk = true;
+        $igOk = true;
+
+        if ($postFB && defined('FB_PAGE_ID') && FB_PAGE_ID && defined('FB_PAGE_ACCESS_TOKEN') && FB_PAGE_ACCESS_TOKEN) {
+            $r = socialPublishFacebook(FB_PAGE_ID, FB_PAGE_ACCESS_TOKEN, $caption, $imageFB, $articleUrl);
+            $fbOk = !empty($r['ok']);
         }
 
         $igImage = $imageIG ?: $image;
-        if ($postIG && defined('IG_USER_ID') && IG_USER_ID && $igImage) {
-            $container = socialPost("https://graph.facebook.com/v19.0/" . IG_USER_ID . "/media", [
-                'image_url'    => $igImage,
-                'caption'      => $caption,
-                'access_token' => FB_PAGE_ACCESS_TOKEN,
-            ]);
-            if (!empty($container['id'])) {
-                socialPost("https://graph.facebook.com/v19.0/" . IG_USER_ID . "/media_publish", [
-                    'creation_id'  => $container['id'],
-                    'access_token' => FB_PAGE_ACCESS_TOKEN,
-                ]);
-            }
+        if ($postIG && defined('IG_USER_ID') && IG_USER_ID && defined('FB_PAGE_ACCESS_TOKEN') && FB_PAGE_ACCESS_TOKEN && $igImage) {
+            $r = socialPublishInstagram(IG_USER_ID, FB_PAGE_ACCESS_TOKEN, $igImage, $caption);
+            $igOk = !empty($r['ok']);
         }
+
+        if (!$fbOk || !$igOk) $socialFlash = '&social=err';
     }
 }
 
-header('Location: /admin/dashboard.php?flash=saved');
+header('Location: /admin/dashboard.php?flash=saved' . $socialFlash);
 exit;
-
-function socialPost(string $url, array $body): array
-{
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => json_encode($body),
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-        CURLOPT_TIMEOUT        => 15,
-    ]);
-    $res = curl_exec($ch);
-    curl_close($ch);
-    return json_decode($res ?: '{}', true) ?: [];
-}
