@@ -1,5 +1,16 @@
 <?php
-session_start();
+// --- Session hardening -------------------------------------------------------
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_name('verora_admin');
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/admin/',
+        'httponly' => true,
+        'samesite' => 'Lax',
+        'secure'   => !empty($_SERVER['HTTPS']),
+    ]);
+    session_start();
+}
 
 function requireLogin(): void
 {
@@ -8,6 +19,55 @@ function requireLogin(): void
         exit;
     }
 }
+
+// --- CSRF --------------------------------------------------------------------
+function csrfToken(): string
+{
+    if (empty($_SESSION['csrf'])) {
+        $_SESSION['csrf'] = bin2hex(random_bytes(16));
+    }
+    return $_SESSION['csrf'];
+}
+
+function requireCsrf(): void
+{
+    $submitted = $_POST['_csrf'] ?? $_GET['_csrf'] ?? '';
+    $expected  = $_SESSION['csrf'] ?? '';
+    if (!$expected || !is_string($submitted) || !hash_equals($expected, $submitted)) {
+        http_response_code(403);
+        exit('Forbidden: invalid CSRF token');
+    }
+}
+
+// --- Safe post-file validation (defense in depth) ----------------------------
+function validPostFilename(string $file): bool
+{
+    if ($file === '') return false;
+    if ($file !== basename($file)) return false;
+    return (bool)preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]*\.md$/', $file);
+}
+
+function requireValidPostFilename(string $file): string
+{
+    $file = basename($file);
+    if (!validPostFilename($file)) {
+        http_response_code(400);
+        exit('Bad Request: invalid filename');
+    }
+    return $file;
+}
+
+// --- Security headers for admin pages ---------------------------------------
+function adminSecurityHeaders(): void
+{
+    if (headers_sent()) return;
+    header("Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' https://unpkg.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: same-origin');
+    header('X-Frame-Options: DENY');
+    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+}
+adminSecurityHeaders();
 
 function adminHead(string $title = 'Admin', string $extra = ''): void { ?>
 <!DOCTYPE html>
@@ -69,6 +129,7 @@ function adminNav(string $page = ''): void { ?>
     <a href="/admin/gallery.php" class="btn btn-ghost btn-sm" <?= $page === 'gallery' ? 'aria-current="page"' : '' ?>>ผลงาน</a>
     <a href="/admin/content.php" class="btn btn-ghost btn-sm" <?= $page === 'content' ? 'aria-current="page"' : '' ?>>เนื้อหาเว็บ</a>
     <a href="/admin/settings.php" class="btn btn-ghost btn-sm" <?= $page === 'settings' ? 'aria-current="page"' : '' ?>>ตั้งค่า</a>
+    <a href="/admin/change-password.php" class="btn btn-ghost btn-sm">รหัสผ่าน</a>
     <a href="/admin/edit.php" class="btn btn-primary btn-sm">+ บทความใหม่</a>
     <a href="/admin/logout.php" class="btn btn-ghost btn-sm">ออกจากระบบ</a>
   </div>

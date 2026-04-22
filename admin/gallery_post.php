@@ -2,9 +2,11 @@
 require __DIR__ . '/auth.php';
 require __DIR__ . '/social.php';
 requireLogin();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit('Method Not Allowed'); }
+requireCsrf();
 
-$id       = preg_replace('/[^a-z0-9-]/', '', strtolower($_GET['id'] ?? $_POST['id'] ?? ''));
-$platform = $_GET['platform'] ?? $_POST['platform'] ?? '';
+$id       = preg_replace('/[^a-z0-9-]/', '', strtolower((string)($_POST['id'] ?? '')));
+$platform = $_POST['platform'] ?? '';
 if (!$id || !in_array($platform, ['fb', 'ig', 'both'], true)) {
     header('Location: /admin/gallery.php?flash=err');
     exit;

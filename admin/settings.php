@@ -31,6 +31,10 @@ $testResult = null;
 $discoverResult = null;
 $action = $_POST['_action'] ?? '';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCsrf();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'test') {
     if (file_exists($configFile)) require $configFile;
     $testResult = socialTestConnection();
@@ -131,6 +135,7 @@ adminHead('ตั้งค่า');
         วาง <strong>User Access Token</strong> (จาก <a href="https://developers.facebook.com/tools/explorer/" target="_blank" style="color:var(--gold)">Graph API Explorer</a> หรือแอป Meta ของคุณ) ที่มีสิทธิ์ <code>pages_show_list</code>, <code>pages_manage_posts</code>, <code>pages_read_engagement</code>, <code>instagram_basic</code>, <code>instagram_content_publish</code> — ระบบจะดึงรายการเพจ + สร้าง Page Access Token + หา Instagram ID ให้เอง
       </p>
       <form method="POST">
+        <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
         <input type="hidden" name="_action" value="discover">
         <label>
           <span>User Access Token</span>
@@ -159,6 +164,7 @@ adminHead('ตั้งค่า');
                   </span>
                 </div>
                 <form method="POST" style="margin:0">
+                  <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
                   <input type="hidden" name="_action" value="use_page">
                   <input type="hidden" name="page_id" value="<?= htmlspecialchars($p['id']) ?>">
                   <input type="hidden" name="page_token" value="<?= htmlspecialchars($p['access_token']) ?>">
@@ -173,6 +179,7 @@ adminHead('ตั้งค่า');
     </details>
 
     <form method="POST">
+      <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
       <label>
         <span>Facebook Page ID</span>
         <input type="text" name="FB_PAGE_ID" value="<?= htmlspecialchars($values['FB_PAGE_ID']) ?>" placeholder="1234567890">
@@ -209,10 +216,11 @@ adminHead('ตั้งค่า');
 <?php
 function upsertDefine(string $content, string $name, string $value): string
 {
-    $escaped = addslashes($value);
-    $replacement = "define('" . $name . "', '" . $escaped . "');";
+    // var_export produces a safely quoted PHP literal — immune to injection via
+    // quotes, backslashes, newlines, or PHP code in $value.
+    $replacement = "define('" . $name . "', " . var_export((string)$value, true) . ");";
 
-    $pattern = '/define\(\s*[\"\']' . preg_quote($name, '/') . '[\"\']\s*,\s*[\"\'].*?[\"\']\s*\)\s*;/' ;
+    $pattern = '/define\(\s*[\"\']' . preg_quote($name, '/') . '[\"\']\s*,\s*.*?\)\s*;/s';
     if (preg_match($pattern, $content)) {
         return preg_replace($pattern, $replacement, $content, 1) ?? $content;
     }

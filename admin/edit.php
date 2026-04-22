@@ -10,8 +10,9 @@ $data     = ['title' => '', 'slug' => '', 'date' => date('Y-m-d'), 'description'
 $body     = '';
 
 if (!empty($_GET['file'])) {
-    $file    = basename($_GET['file']);
-    $path    = $postsDir . '/' . $file;
+    $file = basename((string)$_GET['file']);
+    if (!validPostFilename($file)) { http_response_code(400); exit('Bad Request'); }
+    $path = $postsDir . '/' . $file;
     if (file_exists($path)) {
         $parsed  = parseFrontmatter(file_get_contents($path));
         $data    = array_merge($data, $parsed['data']);
@@ -34,6 +35,7 @@ adminHead($isNew ? 'บทความใหม่' : 'แก้ไขบทค�
     </div>
 
     <form method="POST" action="/admin/save.php">
+      <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
       <input type="hidden" name="_original_file" value="<?= htmlspecialchars($file) ?>">
       <input type="hidden" name="_is_new" value="<?= $isNew ? '1' : '0' ?>">
 
