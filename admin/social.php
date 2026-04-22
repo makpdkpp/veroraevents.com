@@ -101,6 +101,34 @@ function socialPublishInstagram(string $igUserId, string $token, string $imageUr
 }
 
 /**
+ * List Pages managed by a User Access Token, with each Page's own
+ * page access token and linked Instagram Business Account.
+ * Returns [] on failure.
+ */
+function socialDiscoverPages(string $userToken): array
+{
+    $r = socialRequest('GET', 'https://graph.facebook.com/v19.0/me/accounts', [
+        'fields'       => 'id,name,access_token,instagram_business_account{id,username}',
+        'limit'        => 50,
+        'access_token' => $userToken,
+    ]);
+    if (empty($r['ok']) || empty($r['data']['data'])) {
+        return ['ok' => false, 'error' => $r['error'] ?: 'ดึงรายการเพจไม่สำเร็จ', 'pages' => []];
+    }
+    $pages = [];
+    foreach ($r['data']['data'] as $p) {
+        $pages[] = [
+            'id'           => (string)($p['id'] ?? ''),
+            'name'         => (string)($p['name'] ?? ''),
+            'access_token' => (string)($p['access_token'] ?? ''),
+            'ig_id'        => (string)($p['instagram_business_account']['id'] ?? ''),
+            'ig_username'  => (string)($p['instagram_business_account']['username'] ?? ''),
+        ];
+    }
+    return ['ok' => true, 'error' => '', 'pages' => $pages];
+}
+
+/**
  * Verify config by calling /me on both page token and IG user id.
  */
 function socialTestConnection(): array

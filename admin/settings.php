@@ -28,9 +28,38 @@ if (!file_exists($configFile)) {
 }
 
 $testResult = null;
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['_action']) && $_POST['_action'] === 'test') {
+$discoverResult = null;
+$action = $_POST['_action'] ?? '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'test') {
     if (file_exists($configFile)) require $configFile;
     $testResult = socialTestConnection();
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'discover') {
+    $userToken = trim($_POST['user_token'] ?? '');
+    if (!$userToken) {
+        $error = 'กรุณาวาง User Access Token';
+    } else {
+        $discoverResult = socialDiscoverPages($userToken);
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'use_page') {
+    if (!file_exists($configFile)) {
+        $error = 'ไม่พบ config.php';
+    } else {
+        $newVals = [
+            'FB_PAGE_ID'           => trim($_POST['page_id'] ?? ''),
+            'FB_PAGE_ACCESS_TOKEN' => trim($_POST['page_token'] ?? ''),
+            'IG_USER_ID'           => trim($_POST['ig_id'] ?? ''),
+        ];
+        $content = file_get_contents($configFile);
+        if ($content !== false) {
+            foreach ($newVals as $k => $v) $content = upsertDefine($content, $k, $v);
+            if (file_put_contents($configFile, $content) !== false) {
+                header('Location: /admin/settings.php?flash=saved');
+                exit;
+            }
+            $error = 'บันทึกไฟล์ config.php ไม่ได้';
+        }
+    }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!file_exists($configFile)) {
         $error = 'ไม่พบไฟล์ admin/config.php — กรุณาสร้างไฟล์ตาม config.php.example';
@@ -95,6 +124,53 @@ adminHead('ตั้งค่า');
         <p style="font-size:.8rem;color:var(--muted);margin-top:.5rem">ดูรายละเอียด error ได้ที่ <code>admin/social-errors.log</code></p>
       </div>
     <?php endif ?>
+
+    <details <?= $discoverResult !== null ? 'open' : '' ?> style="margin-bottom:2rem;padding:1.1rem 1.25rem;border-radius:var(--r);background:rgba(255,255,255,.55);border:1px solid var(--line)">
+      <summary style="cursor:pointer;font-weight:600;font-size:1rem">⚡ ตั้งค่าอัตโนมัติจาก User Access Token (แนะนำ)</summary>
+      <p style="color:var(--muted);font-size:.88rem;margin:.75rem 0 1rem;line-height:1.7">
+        วาง <strong>User Access Token</strong> (จาก <a href="https://developers.facebook.com/tools/explorer/" target="_blank" style="color:var(--gold)">Graph API Explorer</a> หรือแอป Meta ของคุณ) ที่มีสิทธิ์ <code>pages_show_list</code>, <code>pages_manage_posts</code>, <code>pages_read_engagement</code>, <code>instagram_basic</code>, <code>instagram_content_publish</code> — ระบบจะดึงรายการเพจ + สร้าง Page Access Token + หา Instagram ID ให้เอง
+      </p>
+      <form method="POST">
+        <input type="hidden" name="_action" value="discover">
+        <label>
+          <span>User Access Token</span>
+          <input type="password" name="user_token" placeholder="EAAB... (ยาวมาก)" required>
+        </label>
+        <button type="submit" class="btn btn-primary">🔎 ดึงรายการเพจของฉัน</button>
+      </form>
+
+      <?php if ($discoverResult !== null): ?>
+        <?php if (empty($discoverResult['ok'])): ?>
+          <p class="flash-err" style="margin-top:1rem">✗ <?= htmlspecialchars($discoverResult['error']) ?></p>
+        <?php elseif (empty($discoverResult['pages'])): ?>
+          <p class="flash-err" style="margin-top:1rem">ไม่พบเพจที่จัดการอยู่ — ตรวจว่า Token มีสิทธิ์ <code>pages_show_list</code> หรือไม่</p>
+        <?php else: ?>
+          <div style="margin-top:1rem;display:grid;gap:.65rem">
+            <?php foreach ($discoverResult['pages'] as $p): ?>
+              <div class="article-row" style="flex-wrap:wrap">
+                <div class="article-meta">
+                  <strong><?= htmlspecialchars($p['name']) ?></strong>
+                  <span>Page ID: <?= htmlspecialchars($p['id']) ?>
+                    <?php if ($p['ig_username']): ?>
+                      · IG: @<?= htmlspecialchars($p['ig_username']) ?> (<?= htmlspecialchars($p['ig_id']) ?>)
+                    <?php else: ?>
+                      · <em style="color:#b02020">ไม่ได้ผูก IG Business</em>
+                    <?php endif ?>
+                  </span>
+                </div>
+                <form method="POST" style="margin:0">
+                  <input type="hidden" name="_action" value="use_page">
+                  <input type="hidden" name="page_id" value="<?= htmlspecialchars($p['id']) ?>">
+                  <input type="hidden" name="page_token" value="<?= htmlspecialchars($p['access_token']) ?>">
+                  <input type="hidden" name="ig_id" value="<?= htmlspecialchars($p['ig_id']) ?>">
+                  <button type="submit" class="btn btn-primary btn-sm">✓ ใช้เพจนี้</button>
+                </form>
+              </div>
+            <?php endforeach ?>
+          </div>
+        <?php endif ?>
+      <?php endif ?>
+    </details>
 
     <form method="POST">
       <label>
