@@ -78,6 +78,11 @@ $sections = [
         ['contact_headline', 'หัวข้อ', 'textarea'],
         ['contact_description', 'คำอธิบาย', 'textarea'],
     ],
+    'LINE OA' => [
+        ['line_id',  'LINE ID', 'text'],
+        ['line_url', 'LINE URL (สำหรับปุ่มและ Float Button)', 'text'],
+        ['line_qr',  'QR Code (URL รูปภาพ — ว่างไว้ = ใช้ไฟล์ assets/line-oa-qr.png)', 'url'],
+    ],
 ];
 
 $content = [];

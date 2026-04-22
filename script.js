@@ -14,6 +14,12 @@ fetch('/_data/content.json', { cache: 'no-store' })
                 el.setAttribute('src', content[key]);
             }
         });
+        document.querySelectorAll('[data-content-href]').forEach((el) => {
+            const key = el.getAttribute('data-content-href');
+            if (key && typeof content[key] === 'string' && content[key].trim() !== '') {
+                el.setAttribute('href', content[key]);
+            }
+        });
     })
     .catch(() => {});
 
