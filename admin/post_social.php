@@ -3,10 +3,12 @@ require __DIR__ . '/auth.php';
 require __DIR__ . '/md.php';
 require __DIR__ . '/social.php';
 requireLogin();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit('Method Not Allowed'); }
+requireCsrf();
 
-$file     = basename($_GET['file'] ?? $_POST['file'] ?? '');
-$platform = $_GET['platform'] ?? $_POST['platform'] ?? '';
-if (!$file || !in_array($platform, ['fb', 'ig', 'both'], true)) {
+$file     = requireValidPostFilename((string)($_POST['file'] ?? ''));
+$platform = $_POST['platform'] ?? '';
+if (!in_array($platform, ['fb', 'ig', 'both'], true)) {
     header('Location: /admin/dashboard.php?flash=err');
     exit;
 }

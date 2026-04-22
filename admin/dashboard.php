@@ -54,18 +54,37 @@ adminHead('Dashboard');
             <div class="article-actions">
               <a href="/blog/<?= urlencode($p['slug']) ?>/" target="_blank" class="btn btn-ghost btn-sm">ดู</a>
               <a href="/admin/edit.php?file=<?= urlencode($p['file']) ?>" class="btn btn-ghost btn-sm">แก้ไข</a>
-              <a href="/admin/post_social.php?file=<?= urlencode($p['file']) ?>&platform=fb"
-                 class="btn btn-ghost btn-sm"
-                 onclick="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($p['title'])) ?>\' ไป Facebook ?')">FB</a>
-              <a href="/admin/post_social.php?file=<?= urlencode($p['file']) ?>&platform=ig"
-                 class="btn btn-ghost btn-sm"
-                 onclick="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($p['title'])) ?>\' ไป Instagram ?')">IG</a>
-              <a href="/admin/post_social.php?file=<?= urlencode($p['file']) ?>&platform=both"
-                 class="btn btn-primary btn-sm"
-                 onclick="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($p['title'])) ?>\' ไปทั้ง FB และ IG ?')">FB+IG</a>
-              <a href="/admin/delete.php?file=<?= urlencode($p['file']) ?>"
-                 class="btn btn-danger btn-sm"
-                 onclick="return confirm('ลบบทความ <?= htmlspecialchars(addslashes($p['title'])) ?> ?')">ลบ</a>
+
+              <form method="POST" action="/admin/post_social.php" style="display:inline;margin:0"
+                    onsubmit="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($p['title'])) ?>\' ไป Facebook ?')">
+                <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
+                <input type="hidden" name="file" value="<?= htmlspecialchars($p['file']) ?>">
+                <input type="hidden" name="platform" value="fb">
+                <button type="submit" class="btn btn-ghost btn-sm">FB</button>
+              </form>
+
+              <form method="POST" action="/admin/post_social.php" style="display:inline;margin:0"
+                    onsubmit="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($p['title'])) ?>\' ไป Instagram ?')">
+                <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
+                <input type="hidden" name="file" value="<?= htmlspecialchars($p['file']) ?>">
+                <input type="hidden" name="platform" value="ig">
+                <button type="submit" class="btn btn-ghost btn-sm">IG</button>
+              </form>
+
+              <form method="POST" action="/admin/post_social.php" style="display:inline;margin:0"
+                    onsubmit="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($p['title'])) ?>\' ไปทั้ง FB และ IG ?')">
+                <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
+                <input type="hidden" name="file" value="<?= htmlspecialchars($p['file']) ?>">
+                <input type="hidden" name="platform" value="both">
+                <button type="submit" class="btn btn-primary btn-sm">FB+IG</button>
+              </form>
+
+              <form method="POST" action="/admin/delete.php" style="display:inline;margin:0"
+                    onsubmit="return confirm('ลบบทความ <?= htmlspecialchars(addslashes($p['title'])) ?> ?')">
+                <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
+                <input type="hidden" name="file" value="<?= htmlspecialchars($p['file']) ?>">
+                <button type="submit" class="btn btn-danger btn-sm">ลบ</button>
+              </form>
             </div>
           </div>
         <?php endforeach ?>

@@ -86,6 +86,7 @@ if (file_exists($dataFile)) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCsrf();
     foreach ($sections as $fields) {
         foreach ($fields as $f) {
             [$key] = $f;
@@ -118,6 +119,7 @@ adminHead('เนื้อหาเว็บ');
     <?php if ($error): ?><p class="flash-err"><?= htmlspecialchars($error) ?></p><?php endif ?>
 
     <form method="POST">
+      <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
       <?php foreach ($sections as $sectionTitle => $fields): ?>
         <details open style="margin-bottom:1.5rem;border:1px solid var(--line);border-radius:var(--r);padding:1rem 1.25rem;background:rgba(255,255,255,.48)">
           <summary style="cursor:pointer;font-weight:600;font-size:1rem;margin-bottom:.5rem"><?= htmlspecialchars($sectionTitle) ?></summary>

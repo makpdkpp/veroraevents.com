@@ -2,6 +2,8 @@
 require __DIR__ . '/auth.php';
 require __DIR__ . '/social.php';
 requireLogin();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit('Method Not Allowed'); }
+requireCsrf();
 
 $postsDir = dirname(__DIR__) . '/_posts';
 
@@ -13,7 +15,8 @@ $image       = trim($_POST['image']       ?? '');
 $imageFB     = trim($_POST['image_facebook']  ?? '');
 $imageIG     = trim($_POST['image_instagram'] ?? '');
 $body        = trim($_POST['body']        ?? '');
-$origFile    = basename($_POST['_original_file'] ?? '');
+$origFileRaw = basename($_POST['_original_file'] ?? '');
+$origFile    = ($origFileRaw !== '' && validPostFilename($origFileRaw)) ? $origFileRaw : '';
 $isNew       = ($_POST['_is_new'] ?? '0') === '1';
 $postFB      = !empty($_POST['post_facebook']);
 $postIG      = !empty($_POST['post_instagram']);

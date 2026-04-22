@@ -1,26 +1,85 @@
 <?php
-session_start();
+require __DIR__ . '/auth.php';
 if (!empty($_SESSION['admin'])) {
     header('Location: /admin/dashboard.php');
     exit;
 }
 
 $configFile = __DIR__ . '/config.php';
+$failsFile  = __DIR__ . '/.login-fails.json';
 $error = '';
 
+// ---- Login throttle (file-based, per-IP) -----------------------------------
+$ip        = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$ipKey     = hash('sha256', $ip);
+$now       = time();
+$maxFails  = 5;
+$lockFor   = 15 * 60; // 15 minutes
+
+$loadFails = function () use ($failsFile) {
+    if (!file_exists($failsFile)) return [];
+    $j = json_decode((string)file_get_contents($failsFile), true);
+    return is_array($j) ? $j : [];
+};
+$saveFails = function (array $fails) use ($failsFile) {
+    @file_put_contents($failsFile, json_encode($fails, JSON_UNESCAPED_UNICODE));
+};
+$pruneFails = function (array $fails) use ($now) {
+    foreach ($fails as $k => $v) {
+        if (($v['until'] ?? 0) < $now - 86400) unset($fails[$k]);
+    }
+    return $fails;
+};
+
+$fails = $pruneFails($loadFails());
+$entry = $fails[$ipKey] ?? ['count' => 0, 'until' => 0];
+$locked = ($entry['until'] ?? 0) > $now;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!file_exists($configFile)) {
+    if ($locked) {
+        $mins = (int)ceil(($entry['until'] - $now) / 60);
+        $error = "พยายามเข้าสู่ระบบผิดเกินกำหนด — ลองใหม่ใน {$mins} นาที";
+    } elseif (!file_exists($configFile)) {
         $error = 'ไม่พบไฟล์ admin/config.php — กรุณาสร้างไฟล์ตาม config.php.example';
     } else {
         require $configFile;
         $user = trim($_POST['user'] ?? '');
-        $pass = $_POST['pass'] ?? '';
-        if ($user === ADMIN_USER && $pass === ADMIN_PASSWORD) {
-            $_SESSION['admin'] = true;
+        $pass = (string)($_POST['pass'] ?? '');
+
+        $userOk = defined('ADMIN_USER') && hash_equals((string)ADMIN_USER, $user);
+
+        $passOk = false;
+        if (defined('ADMIN_PASSWORD_HASH') && ADMIN_PASSWORD_HASH) {
+            $passOk = password_verify($pass, (string)ADMIN_PASSWORD_HASH);
+        } elseif (defined('ADMIN_PASSWORD') && ADMIN_PASSWORD !== '') {
+            // Legacy plaintext fallback — timing-safe compare
+            $passOk = hash_equals((string)ADMIN_PASSWORD, $pass);
+        }
+
+        if ($userOk && $passOk) {
+            // Success — reset throttle, rotate session id
+            unset($fails[$ipKey]);
+            $saveFails($fails);
+            session_regenerate_id(true);
+            $_SESSION['admin']    = true;
+            $_SESSION['login_at'] = $now;
+            $_SESSION['csrf']     = bin2hex(random_bytes(16));
             header('Location: /admin/dashboard.php');
             exit;
         }
-        $error = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+
+        // Failure — increment, lock at threshold
+        $entry['count'] = (int)($entry['count'] ?? 0) + 1;
+        if ($entry['count'] >= $maxFails) {
+            $entry['until'] = $now + $lockFor;
+            $entry['count'] = 0;
+            $error = 'พยายามเข้าสู่ระบบผิดเกินกำหนด — ถูกล็อก 15 นาที';
+        } else {
+            $remaining = $maxFails - $entry['count'];
+            $error = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง (เหลืออีก {$remaining} ครั้ง)";
+        }
+        $fails[$ipKey] = $entry;
+        $saveFails($fails);
     }
 }
 ?>
@@ -68,6 +127,7 @@ input:focus{border-color:rgba(217,132,157,.7);box-shadow:0 0 0 3px rgba(247,215,
       <p class="err"><?= htmlspecialchars($error) ?></p>
     <?php endif ?>
     <form method="POST">
+      <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
       <label>
         <span>ชื่อผู้ใช้</span>
         <input type="text" name="user" autocomplete="username" required>
@@ -76,7 +136,7 @@ input:focus{border-color:rgba(217,132,157,.7);box-shadow:0 0 0 3px rgba(247,215,
         <span>รหัสผ่าน</span>
         <input type="password" name="pass" autocomplete="current-password" required>
       </label>
-      <button class="btn" type="submit">เข้าสู่ระบบ</button>
+      <button class="btn" type="submit" <?= $locked ? 'disabled' : '' ?>>เข้าสู่ระบบ</button>
     </form>
   </div>
 </div>

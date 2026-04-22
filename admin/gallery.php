@@ -61,19 +61,34 @@ adminHead('ผลงาน');
               <?php endif ?>
               <a href="/admin/gallery_edit.php?id=<?= urlencode($id) ?>" class="btn btn-ghost btn-sm">แก้ไข</a>
               <?php if ($image): ?>
-                <a href="/admin/gallery_post.php?id=<?= urlencode($id) ?>&platform=fb"
-                   class="btn btn-ghost btn-sm"
-                   onclick="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($title)) ?>\' ไป Facebook ?')">FB</a>
-                <a href="/admin/gallery_post.php?id=<?= urlencode($id) ?>&platform=ig"
-                   class="btn btn-ghost btn-sm"
-                   onclick="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($title)) ?>\' ไป Instagram ?')">IG</a>
-                <a href="/admin/gallery_post.php?id=<?= urlencode($id) ?>&platform=both"
-                   class="btn btn-primary btn-sm"
-                   onclick="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($title)) ?>\' ไปทั้ง FB และ IG ?')">FB+IG</a>
+                <form method="POST" action="/admin/gallery_post.php" style="display:inline;margin:0"
+                      onsubmit="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($title)) ?>\' ไป Facebook ?')">
+                  <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
+                  <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
+                  <input type="hidden" name="platform" value="fb">
+                  <button type="submit" class="btn btn-ghost btn-sm">FB</button>
+                </form>
+                <form method="POST" action="/admin/gallery_post.php" style="display:inline;margin:0"
+                      onsubmit="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($title)) ?>\' ไป Instagram ?')">
+                  <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
+                  <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
+                  <input type="hidden" name="platform" value="ig">
+                  <button type="submit" class="btn btn-ghost btn-sm">IG</button>
+                </form>
+                <form method="POST" action="/admin/gallery_post.php" style="display:inline;margin:0"
+                      onsubmit="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($title)) ?>\' ไปทั้ง FB และ IG ?')">
+                  <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
+                  <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
+                  <input type="hidden" name="platform" value="both">
+                  <button type="submit" class="btn btn-primary btn-sm">FB+IG</button>
+                </form>
               <?php endif ?>
-              <a href="/admin/gallery_delete.php?id=<?= urlencode($id) ?>"
-                 class="btn btn-danger btn-sm"
-                 onclick="return confirm('ลบผลงาน <?= htmlspecialchars(addslashes($title)) ?> ?')">ลบ</a>
+              <form method="POST" action="/admin/gallery_delete.php" style="display:inline;margin:0"
+                    onsubmit="return confirm('ลบผลงาน <?= htmlspecialchars(addslashes($title)) ?> ?')">
+                <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
+                <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
+                <button type="submit" class="btn btn-danger btn-sm">ลบ</button>
+              </form>
             </div>
           </div>
         <?php endforeach ?>
