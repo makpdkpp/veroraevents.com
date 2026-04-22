@@ -1,5 +1,6 @@
 <?php
 require __DIR__ . '/auth.php';
+require __DIR__ . '/social.php';
 requireLogin();
 
 $id       = preg_replace('/[^a-z0-9-]/', '', strtolower($_GET['id'] ?? $_POST['id'] ?? ''));
@@ -31,57 +32,29 @@ require $configFile;
 $title   = (string)($item['title'] ?? '');
 $tag     = (string)($item['tag'] ?? '');
 $image   = (string)$item['image'];
-$caption = trim(($tag ? "#" . preg_replace('/\s+/', '', $tag) . "\n" : '') . $title);
+$caption = trim(($tag ? '#' . preg_replace('/\s+/', '', $tag) . "\n" : '') . $title);
 
-$results = [];
+$fbOk = null; $igOk = null;
 
 if ($platform === 'fb' || $platform === 'both') {
-    if (defined('FB_PAGE_ID') && FB_PAGE_ID) {
-        $results['fb'] = socialPost("https://graph.facebook.com/v19.0/" . FB_PAGE_ID . "/photos", [
-            'url'          => $image,
-            'caption'      => $caption,
-            'access_token' => FB_PAGE_ACCESS_TOKEN,
-        ]);
+    if (defined('FB_PAGE_ID') && FB_PAGE_ID && defined('FB_PAGE_ACCESS_TOKEN') && FB_PAGE_ACCESS_TOKEN) {
+        $r = socialPublishFacebook(FB_PAGE_ID, FB_PAGE_ACCESS_TOKEN, $caption, $image, '');
+        $fbOk = !empty($r['ok']);
+    } else {
+        $fbOk = false;
     }
 }
 
 if ($platform === 'ig' || $platform === 'both') {
-    if (defined('IG_USER_ID') && IG_USER_ID) {
-        $container = socialPost("https://graph.facebook.com/v19.0/" . IG_USER_ID . "/media", [
-            'image_url'    => $image,
-            'caption'      => $caption,
-            'access_token' => FB_PAGE_ACCESS_TOKEN,
-        ]);
-        if (!empty($container['id'])) {
-            $results['ig'] = socialPost("https://graph.facebook.com/v19.0/" . IG_USER_ID . "/media_publish", [
-                'creation_id'  => $container['id'],
-                'access_token' => FB_PAGE_ACCESS_TOKEN,
-            ]);
-        } else {
-            $results['ig'] = $container;
-        }
+    if (defined('IG_USER_ID') && IG_USER_ID && defined('FB_PAGE_ACCESS_TOKEN') && FB_PAGE_ACCESS_TOKEN) {
+        $r = socialPublishInstagram(IG_USER_ID, FB_PAGE_ACCESS_TOKEN, $image, $caption);
+        $igOk = !empty($r['ok']);
+    } else {
+        $igOk = false;
     }
 }
 
-$ok = false;
-foreach ($results as $r) {
-    if (!empty($r['id']) || !empty($r['post_id'])) { $ok = true; break; }
-}
-
-header('Location: /admin/gallery.php?flash=' . ($ok ? 'posted_' . $platform : 'post_err'));
+$allOk = ($fbOk === null || $fbOk) && ($igOk === null || $igOk);
+$flash = $allOk ? 'posted_' . $platform : 'post_err';
+header('Location: /admin/gallery.php?flash=' . $flash);
 exit;
-
-function socialPost(string $url, array $body): array
-{
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => json_encode($body),
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-        CURLOPT_TIMEOUT        => 20,
-    ]);
-    $res = curl_exec($ch);
-    curl_close($ch);
-    return json_decode($res ?: '{}', true) ?: [];
-}
