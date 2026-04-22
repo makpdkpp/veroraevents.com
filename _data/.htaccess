@@ -1,1 +1,9 @@
+# Allow only the two JSON files that the front-end JS needs to read.
+# Everything else (any future file dropped here) stays private.
+<Files "content.json">
+    Require all granted
+</Files>
+<Files "gallery.json">
+    Require all granted
+</Files>
 Require all denied
