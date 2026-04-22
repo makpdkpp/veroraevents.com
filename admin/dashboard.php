@@ -32,8 +32,14 @@ adminHead('Dashboard');
       <a href="/admin/edit.php" class="btn btn-primary">+ เขียนบทความใหม่</a>
     </div>
 
-    <?php if ($flash === 'saved'):  ?><p class="flash-ok">บันทึกและเผยแพร่เรียบร้อยแล้ว</p><?php endif ?>
-    <?php if ($flash === 'deleted'):?><p class="flash-ok">ลบบทความเรียบร้อยแล้ว</p><?php endif ?>
+    <?php if ($flash === 'saved'):       ?><p class="flash-ok">บันทึกและเผยแพร่เรียบร้อยแล้ว</p><?php endif ?>
+    <?php if ($flash === 'deleted'):     ?><p class="flash-ok">ลบบทความเรียบร้อยแล้ว</p><?php endif ?>
+    <?php if ($flash === 'posted_fb'):   ?><p class="flash-ok">โพสต์ไป Facebook เรียบร้อยแล้ว</p><?php endif ?>
+    <?php if ($flash === 'posted_ig'):   ?><p class="flash-ok">โพสต์ไป Instagram เรียบร้อยแล้ว</p><?php endif ?>
+    <?php if ($flash === 'posted_both'): ?><p class="flash-ok">โพสต์ไป Facebook และ Instagram เรียบร้อยแล้ว</p><?php endif ?>
+    <?php if ($flash === 'post_err'):    ?><p class="flash-err">โพสต์ไม่สำเร็จ — ดู <code>admin/social-errors.log</code></p><?php endif ?>
+    <?php if ($flash === 'noconfig'):    ?><p class="flash-err">ยังไม่ได้ตั้งค่า FB/IG — ไปที่หน้าตั้งค่าก่อน</p><?php endif ?>
+    <?php if ($flash === 'err'):         ?><p class="flash-err">ไม่พบบทความ</p><?php endif ?>
 
     <?php if (empty($posts)): ?>
       <p style="color:var(--muted);text-align:center;padding:3rem 0">ยังไม่มีบทความ — กด <strong>เขียนบทความใหม่</strong> เพื่อเริ่มต้น</p>
@@ -48,6 +54,15 @@ adminHead('Dashboard');
             <div class="article-actions">
               <a href="/blog/<?= urlencode($p['slug']) ?>/" target="_blank" class="btn btn-ghost btn-sm">ดู</a>
               <a href="/admin/edit.php?file=<?= urlencode($p['file']) ?>" class="btn btn-ghost btn-sm">แก้ไข</a>
+              <a href="/admin/post_social.php?file=<?= urlencode($p['file']) ?>&platform=fb"
+                 class="btn btn-ghost btn-sm"
+                 onclick="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($p['title'])) ?>\' ไป Facebook ?')">FB</a>
+              <a href="/admin/post_social.php?file=<?= urlencode($p['file']) ?>&platform=ig"
+                 class="btn btn-ghost btn-sm"
+                 onclick="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($p['title'])) ?>\' ไป Instagram ?')">IG</a>
+              <a href="/admin/post_social.php?file=<?= urlencode($p['file']) ?>&platform=both"
+                 class="btn btn-primary btn-sm"
+                 onclick="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($p['title'])) ?>\' ไปทั้ง FB และ IG ?')">FB+IG</a>
               <a href="/admin/delete.php?file=<?= urlencode($p['file']) ?>"
                  class="btn btn-danger btn-sm"
                  onclick="return confirm('ลบบทความ <?= htmlspecialchars(addslashes($p['title'])) ?> ?')">ลบ</a>
