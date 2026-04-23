@@ -111,24 +111,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 adminHead('เนื้อหาเว็บ');
 ?>
-<div class="wrap">
-  <div class="card">
-    <?php adminNav('content') ?>
-
-    <div class="topbar">
-      <h1>แก้ไขเนื้อหาหน้าเว็บ</h1>
-      <a href="/" target="_blank" class="btn btn-ghost btn-sm">ดูหน้าเว็บ</a>
-    </div>
+<?php adminShellStart('content', 'Website Content') ?>
+<section class="admin-page stack-lg">
+  <?php adminPageHeader(
+      'Website',
+      'แก้ไขเนื้อหาหน้าเว็บ',
+      'รวมข้อความและสื่อหลักของทุก section ไว้ในฟอร์มเดียว เพื่อให้การดูแลหน้าเว็บสม่ำเสมอและค้นหาง่าย',
+      '<a href="/" target="_blank" class="btn btn-ghost">ดูหน้าเว็บ</a>'
+  ) ?>
 
     <?php if ($flash === 'saved'): ?><p class="flash-ok">บันทึกเรียบร้อยแล้ว — รีเฟรชหน้าเว็บเพื่อดูผล</p><?php endif ?>
     <?php if ($error): ?><p class="flash-err"><?= htmlspecialchars($error) ?></p><?php endif ?>
 
-    <form method="POST">
+    <form method="POST" class="stack-lg">
       <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
       <?php foreach ($sections as $sectionTitle => $fields): ?>
-        <details open style="margin-bottom:1.5rem;border:1px solid var(--line);border-radius:var(--r);padding:1rem 1.25rem;background:rgba(255,255,255,.48)">
-          <summary style="cursor:pointer;font-weight:600;font-size:1rem;margin-bottom:.5rem"><?= htmlspecialchars($sectionTitle) ?></summary>
-          <div style="margin-top:1rem">
+        <details open class="form-section">
+          <summary><?= htmlspecialchars($sectionTitle) ?></summary>
+          <div class="form-section-body">
             <?php foreach ($fields as $f):
               [$key, $label, $type] = $f;
               $val = (string)($content[$key] ?? '');
@@ -150,12 +150,10 @@ adminHead('เนื้อหาเว็บ');
         </details>
       <?php endforeach ?>
 
-      <div style="display:flex;gap:.75rem;position:sticky;bottom:1rem;padding:1rem;background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--line)">
+      <div class="sticky-actions">
         <button type="submit" class="btn btn-primary">💾 บันทึกเนื้อหา</button>
         <a href="/admin/dashboard.php" class="btn btn-ghost">ยกเลิก</a>
       </div>
     </form>
-  </div>
-</div>
-</body>
-</html>
+</section>
+<?php adminShellEnd() ?>

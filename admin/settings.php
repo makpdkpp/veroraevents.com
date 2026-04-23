@@ -93,14 +93,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'test') {
 
 adminHead('ตั้งค่า');
 ?>
-<div class="wrap">
-  <div class="card">
-    <?php adminNav('settings') ?>
-
-    <div class="topbar">
-      <h1>ตั้งค่าโซเชียล</h1>
-      <a href="/admin/dashboard.php" class="btn btn-ghost btn-sm">← กลับ</a>
-    </div>
+<?php adminShellStart('settings', 'Social Settings') ?>
+<section class="admin-page stack-lg">
+  <?php adminPageHeader(
+      'System',
+      'ตั้งค่าโซเชียล',
+      'จัดการ Facebook Page ID, Access Token และ Instagram User ID พร้อมเครื่องมือทดสอบการเชื่อมต่อ',
+      '<a href="/admin/dashboard.php" class="btn btn-ghost">กลับ Dashboard</a>'
+  ) ?>
 
     <?php if ($flash === 'saved'): ?><p class="flash-ok">บันทึกเรียบร้อยแล้ว</p><?php endif ?>
     <?php if ($error): ?><p class="flash-err"><?= htmlspecialchars($error) ?></p><?php endif ?>
@@ -129,8 +129,8 @@ adminHead('ตั้งค่า');
       </div>
     <?php endif ?>
 
-    <details <?= $discoverResult !== null ? 'open' : '' ?> style="margin-bottom:2rem;padding:1.1rem 1.25rem;border-radius:var(--r);background:rgba(255,255,255,.55);border:1px solid var(--line)">
-      <summary style="cursor:pointer;font-weight:600;font-size:1rem">⚡ ตั้งค่าอัตโนมัติจาก User Access Token (แนะนำ)</summary>
+    <details <?= $discoverResult !== null ? 'open' : '' ?> class="form-section">
+      <summary>⚡ ตั้งค่าอัตโนมัติจาก User Access Token (แนะนำ)</summary>
       <p style="color:var(--muted);font-size:.88rem;margin:.75rem 0 1rem;line-height:1.7">
         วาง <strong>User Access Token</strong> (จาก <a href="https://developers.facebook.com/tools/explorer/" target="_blank" style="color:var(--gold)">Graph API Explorer</a> หรือแอป Meta ของคุณ) ที่มีสิทธิ์ <code>pages_show_list</code>, <code>pages_manage_posts</code>, <code>pages_read_engagement</code>, <code>instagram_basic</code>, <code>instagram_content_publish</code> — ระบบจะดึงรายการเพจ + สร้าง Page Access Token + หา Instagram ID ให้เอง
       </p>
@@ -178,7 +178,7 @@ adminHead('ตั้งค่า');
       <?php endif ?>
     </details>
 
-    <form method="POST">
+    <form method="POST" class="stack-md">
       <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
       <label>
         <span>Facebook Page ID</span>
@@ -195,24 +195,22 @@ adminHead('ตั้งค่า');
         <input type="text" name="IG_USER_ID" value="<?= htmlspecialchars($values['IG_USER_ID']) ?>" placeholder="1784...">
       </label>
 
-      <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+      <div class="admin-page-actions">
         <button type="submit" class="btn btn-primary">💾 บันทึก</button>
         <button type="submit" name="_action" value="test" class="btn btn-ghost" formnovalidate>🔌 ทดสอบการเชื่อมต่อ</button>
         <a href="/admin/dashboard.php" class="btn btn-ghost">ยกเลิก</a>
       </div>
     </form>
 
-    <div style="margin-top:2rem;padding:1rem 1.15rem;border-radius:var(--r);background:rgba(255,255,255,.4);border:1px solid var(--line);font-size:.85rem;color:var(--muted);line-height:1.7">
+    <div class="note-card" style="font-size:.85rem;color:var(--muted);line-height:1.7">
       <strong style="color:var(--text);display:block;margin-bottom:.4rem">การโพสต์ต้องมีสิทธิ์ (Permissions) ดังนี้</strong>
       • Facebook: Page Access Token (ไม่ใช่ User Token) ที่มีสิทธิ์ <code>pages_manage_posts</code>, <code>pages_read_engagement</code><br>
       • Instagram: บัญชีต้องเป็น <strong>Business/Creator</strong> และผูกกับ Facebook Page — ต้องการสิทธิ์ <code>instagram_basic</code>, <code>instagram_content_publish</code><br>
       • รูปสำหรับ IG ต้องเป็น URL สาธารณะ (public) ในรูปแบบ JPEG — Unsplash/CDN ที่เราใช้ผ่านได้<br>
       • ถ้ากดทดสอบแล้วไม่ผ่าน ให้ดู error ที่ <code>admin/social-errors.log</code>
     </div>
-  </div>
-</div>
-</body>
-</html>
+</section>
+<?php adminShellEnd() ?>
 <?php
 function upsertDefine(string $content, string $name, string $value): string
 {

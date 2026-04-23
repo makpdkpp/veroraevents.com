@@ -65,18 +65,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 adminHead('เปลี่ยนรหัสผ่าน');
 ?>
-<div class="wrap">
-  <div class="card">
-    <?php adminNav() ?>
-    <div class="topbar">
-      <h1>เปลี่ยนรหัสผ่านผู้ดูแล</h1>
-      <a href="/admin/dashboard.php" class="btn btn-ghost btn-sm">← กลับ</a>
-    </div>
+<?php adminShellStart('password', 'Security') ?>
+<section class="admin-page stack-lg">
+  <?php adminPageHeader(
+      'Security',
+      'เปลี่ยนรหัสผ่านผู้ดูแล',
+      'อัปเดตรหัสผ่านของบัญชีแอดมินหลักและเก็บไว้ในรูปแบบ hash ภายใน config.php',
+      '<a href="/admin/dashboard.php" class="btn btn-ghost">กลับ Dashboard</a>'
+  ) ?>
 
     <?php if ($flash === 'saved'): ?><p class="flash-ok">เปลี่ยนรหัสผ่านเรียบร้อยแล้ว</p><?php endif ?>
     <?php if ($error): ?><p class="flash-err"><?= htmlspecialchars($error) ?></p><?php endif ?>
 
-    <form method="POST" style="max-width:480px">
+    <form method="POST" class="password-panel">
       <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
       <label>
         <span>รหัสผ่านปัจจุบัน</span>
@@ -93,11 +94,8 @@ adminHead('เปลี่ยนรหัสผ่าน');
       <button type="submit" class="btn btn-primary">💾 บันทึกรหัสผ่านใหม่</button>
     </form>
 
-    <div style="margin-top:2rem;padding:1rem 1.15rem;border-radius:var(--r);background:rgba(255,255,255,.4);border:1px solid var(--line);font-size:.85rem;color:var(--muted);line-height:1.7">
+    <div class="note-card" style="font-size:.85rem;color:var(--muted);line-height:1.7">
       รหัสผ่านจะถูกเก็บเป็น bcrypt hash ใน <code>admin/config.php</code> เท่านั้น —
       ถ้ามีบรรทัด <code>ADMIN_PASSWORD</code> (plaintext) เก่าอยู่ ระบบจะลบออกให้อัตโนมัติ
     </div>
-  </div>
-</div>
-</body>
-</html>
+<?php adminShellEnd() ?>

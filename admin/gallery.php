@@ -21,14 +21,14 @@ $flash = $_GET['flash'] ?? '';
 
 adminHead('ผลงาน');
 ?>
-<div class="wrap">
-  <div class="card">
-    <?php adminNav('gallery') ?>
-
-    <div class="topbar">
-      <h1>ผลงานทั้งหมด (<?= count($items) ?>)</h1>
-      <a href="/admin/gallery_edit.php" class="btn btn-primary">+ เพิ่มผลงาน</a>
-    </div>
+<?php adminShellStart('gallery', 'Gallery') ?>
+<section class="admin-page stack-lg">
+  <?php adminPageHeader(
+      'Portfolio',
+      'Gallery Library',
+      'จัดการผลงาน รูปโชว์เคส และรายการที่พร้อมนำไปเผยแพร่ต่อบนโซเชียล',
+      '<a href="/admin/gallery_edit.php" class="btn btn-primary">+ เพิ่มผลงาน</a>'
+  ) ?>
 
     <?php if ($flash === 'saved'):       ?><p class="flash-ok">บันทึกเรียบร้อยแล้ว</p><?php endif ?>
     <?php if ($flash === 'deleted'):     ?><p class="flash-ok">ลบเรียบร้อยแล้ว</p><?php endif ?>
@@ -40,7 +40,7 @@ adminHead('ผลงาน');
     <?php if ($flash === 'err'):         ?><p class="flash-err">ไม่พบผลงานหรือข้อมูลไม่ครบ</p><?php endif ?>
 
     <?php if (empty($items)): ?>
-      <p style="color:var(--muted);text-align:center;padding:3rem 0">ยังไม่มีผลงาน — กด <strong>เพิ่มผลงาน</strong> เพื่อเริ่มต้น</p>
+      <div class="empty-state">ยังไม่มีผลงาน กด <strong>เพิ่มผลงาน</strong> เพื่อเริ่มต้น portfolio library</div>
     <?php else: ?>
       <div class="article-list">
         <?php foreach ($items as $it):
@@ -53,7 +53,7 @@ adminHead('ผลงาน');
           <div class="article-row">
             <div class="article-meta">
               <strong><?= htmlspecialchars($title ?: '(ไม่มีชื่อ)') ?></strong>
-              <span>#<?= htmlspecialchars($tag) ?> &nbsp;·&nbsp; order <?= htmlspecialchars((string)$order) ?> &nbsp;·&nbsp; <?= htmlspecialchars($id) ?></span>
+              <span><?= htmlspecialchars($tag) ?> &nbsp;·&nbsp; ลำดับ <?= htmlspecialchars((string)$order) ?> &nbsp;·&nbsp; <?= htmlspecialchars($id) ?></span>
             </div>
             <div class="article-actions">
               <?php if ($image): ?>
@@ -61,21 +61,21 @@ adminHead('ผลงาน');
               <?php endif ?>
               <a href="/admin/gallery_edit.php?id=<?= urlencode($id) ?>" class="btn btn-ghost btn-sm">แก้ไข</a>
               <?php if ($image): ?>
-                <form method="POST" action="/admin/gallery_post.php" style="display:inline;margin:0"
+                <form method="POST" action="/admin/gallery_post.php" class="inline-form"
                       onsubmit="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($title)) ?>\' ไป Facebook ?')">
                   <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
                   <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
                   <input type="hidden" name="platform" value="fb">
                   <button type="submit" class="btn btn-ghost btn-sm">FB</button>
                 </form>
-                <form method="POST" action="/admin/gallery_post.php" style="display:inline;margin:0"
+                <form method="POST" action="/admin/gallery_post.php" class="inline-form"
                       onsubmit="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($title)) ?>\' ไป Instagram ?')">
                   <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
                   <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
                   <input type="hidden" name="platform" value="ig">
                   <button type="submit" class="btn btn-ghost btn-sm">IG</button>
                 </form>
-                <form method="POST" action="/admin/gallery_post.php" style="display:inline;margin:0"
+                <form method="POST" action="/admin/gallery_post.php" class="inline-form"
                       onsubmit="return confirm('โพสต์ \'<?= htmlspecialchars(addslashes($title)) ?>\' ไปทั้ง FB และ IG ?')">
                   <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
                   <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
@@ -83,7 +83,7 @@ adminHead('ผลงาน');
                   <button type="submit" class="btn btn-primary btn-sm">FB+IG</button>
                 </form>
               <?php endif ?>
-              <form method="POST" action="/admin/gallery_delete.php" style="display:inline;margin:0"
+              <form method="POST" action="/admin/gallery_delete.php" class="inline-form"
                     onsubmit="return confirm('ลบผลงาน <?= htmlspecialchars(addslashes($title)) ?> ?')">
                 <input type="hidden" name="_csrf" value="<?= htmlspecialchars(csrfToken()) ?>">
                 <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
@@ -94,7 +94,5 @@ adminHead('ผลงาน');
         <?php endforeach ?>
       </div>
     <?php endif ?>
-  </div>
-</div>
-</body>
-</html>
+</section>
+<?php adminShellEnd() ?>
