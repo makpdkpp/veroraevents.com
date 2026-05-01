@@ -134,13 +134,11 @@ adminHead('เนื้อหาเว็บ');
               $val = (string)($content[$key] ?? '');
             ?>
               <label>
-                <span><?= htmlspecialchars($label) ?>
-                <?php if ($type === 'url'): ?>
-                  <small style="font-weight:400;text-transform:none;color:var(--muted)"> — URL รูป</small>
-                <?php endif ?>
-                </span>
+                <span><?= htmlspecialchars($label) ?></span>
                 <?php if ($type === 'textarea'): ?>
                   <textarea name="<?= htmlspecialchars($key) ?>" rows="3"><?= htmlspecialchars($val) ?></textarea>
+                <?php elseif ($type === 'url'): ?>
+                  <?php imagePickerField($key, $val) ?>
                 <?php else: ?>
                   <input type="text" name="<?= htmlspecialchars($key) ?>" value="<?= htmlspecialchars($val) ?>">
                 <?php endif ?>
